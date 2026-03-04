@@ -1,37 +1,119 @@
-# == define: maxscale::config::service
+# @summary
+#   creates a service in maxscale configuration
+#   all parameters named like in the original maxscale documentation
 #
-# creates a service in maxscale configuration
+# @param router
+# @param user
+# @param password
+# @param router_options
+# @param filters
+# @param servers
+# @param enable_root_user
+# @param localhost_match_wildcard_host
+# @param version_string
+# @param auth_all_servers
+# @param strip_db_esc
+# @param log_auth_warnings
+# @param max_slave_connections
+# @param max_replication_lag
+# @param use_sql_variables_in
+# @param master_reconnection
+# @param slave_selection_criteria
+# @param strict_multi_stmt
+# @param strict_sp_calls
+# @param master_failure_mode
+# @param transaction_replay
+# @param transaction_replay_timeout
+# @param causal_reads
 #
-# === Parameters
-# all parameters named like in the original maxscale documentation
+# @param weightby
+#   This parameter no longer appear in the documentation, but is kept for backward compatibility
+#
+# @param optimize_wildcard
+#   This parameter no longer appear in the documentation, but is kept for backward compatibility
+#
+# @param retry_on_failure
+#   This parameter no longer appear in the documentation, but is kept for backward compatibility
+#
+# @param connection_timeout
+#   This parameter no longer appear in the documentation, but is kept for backward compatibility
+#
+# @param max_slave_replication_lag
+#   Deprecated since MariaDB MaxScale 23.02, but still works as an alias for max_replication_lag.
+#   Is kept for backward compatibility
+#
+# @see
+#   https://mariadb.com/docs/maxscale/reference/maxscale-configuration-settings
+#   https://mariadb.com/docs/maxscale/maxscale-management/deployment/maxscale-configuration-guide#service-1
+#
 define maxscale::config::service (
-  $router,
-  $servers = undef,
-  $router_options = undef,
-  $filters = undef,
-  $user = undef,
-  $password = undef,
-  $enable_root_user = 0,
-  $localhost_match_wildcard_host = 1,
-  $version_string='MaxScale',
-  $weightby = undef,
-  $auth_all_servers = 1,
-  $strip_db_esc = 1,
-  $optimize_wildcard = 1,
-  $retry_on_failure = 1,
-  $log_auth_warnings = 0,
-  $connection_timeout = undef,
-  $max_slave_connections = undef,
-  $max_slave_replication_lag = undef,
-  $use_sql_variables_in = undef,
+  Enum['readwritesplit','readconnroute']           $router,
+  String                                           $user,
+  Sensitive[String]                                $password,
+  Array[Enum['master','slave','synced','running']] $router_options                = [],
+  Array[String]                                    $filters                       = [],
+  Array[String]                                    $servers                       = [],
+  Optional[Boolean]                                $enable_root_user              = undef,
+  Optional[Boolean]                                $localhost_match_wildcard_host = undef,
+  Optional[String]                                 $version_string                = undef,
+  Optional[Boolean]                                $auth_all_servers              = undef,
+  Optional[Boolean]                                $strip_db_esc                  = undef,
+  Optional[Boolean]                                $log_auth_warnings             = undef,
+  Optional[Integer]                                $max_slave_connections         = undef,
+  Optional[Maxscale::Duration]                     $max_replication_lag           = undef,
+  Optional[Enum['master','all']]                   $use_sql_variables_in          = undef,
+  Optional[Boolean]                                $master_reconnection           = undef,
+  Optional[Maxscale::Slave_selection_criteria]     $slave_selection_criteria      = undef,
+  Optional[Boolean]                                $strict_multi_stmt             = undef,
+  Optional[Boolean]                                $strict_sp_calls               = undef,
+  Optional[Maxscale::Master_failure_mode]          $master_failure_mode           = undef,
+  Optional[Boolean]                                $transaction_replay            = undef,
+  Optional[Maxscale::Duration]                     $transaction_replay_timeout    = undef,
+  Optional[Maxscale::Causal_reads]                 $causal_reads                  = undef,
+  # Deprecated?
+  Optional                                         $weightby                      = undef,
+  Optional                                         $optimize_wildcard             = undef,
+  Optional                                         $retry_on_failure              = undef,
+  Optional                                         $connection_timeout            = undef,
+  Optional                                         $max_slave_replication_lag     = undef,
 ) {
   if $router == undef {
     fail('The Router Type must be set!')
   }
-  concat::fragment{ "Service ${name}":
+  concat::fragment { "Service ${name}":
     target  => $maxscale::configfile,
-    content => template('maxscale/service.erb'),
-    order   => '03',
+    content => epp('maxscale/service.epp', {
+        name                          => $name,
+        router                        => $router,
+        router_options                => $router_options,
+        filters                       => $filters,
+        servers                       => $servers,
+        user                          => $user,
+        password                      => $password,
+        enable_root_user              => $enable_root_user,
+        localhost_match_wildcard_host => $localhost_match_wildcard_host,
+        version_string                => $version_string,
+        auth_all_servers              => $auth_all_servers,
+        strip_db_esc                  => $strip_db_esc,
+        log_auth_warnings             => $log_auth_warnings,
+        max_slave_connections         => $max_slave_connections,
+        max_replication_lag           => $max_replication_lag,
+        use_sql_variables_in          => $use_sql_variables_in,
+        master_reconnection           => $master_reconnection,
+        slave_selection_criteria      => $slave_selection_criteria,
+        strict_multi_stmt             => $strict_multi_stmt,
+        strict_sp_calls               => $strict_sp_calls,
+        master_failure_mode           => $master_failure_mode,
+        transaction_replay            => $transaction_replay,
+        transaction_replay_timeout    => $transaction_replay_timeout,
+        causal_reads                  => $causal_reads,
+        # Deprecated?
+        weightby                      => $weightby,
+        optimize_wildcard             => $optimize_wildcard,
+        retry_on_failure              => $retry_on_failure,
+        connection_timeout            => $connection_timeout,
+        max_slave_replication_lag     => $max_slave_replication_lag,
+    }),
+    order   => 31,
   }
-
 }

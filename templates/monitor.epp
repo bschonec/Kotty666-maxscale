@@ -1,0 +1,98 @@
+<%- |
+  String                                                  $name,
+  Enum['mariadbmon','galeramon']                          $module,
+  String                                                  $user,
+  Sensitive[String]                                       $password,
+  Array[Stdlib::Host]                                     $servers,
+  Optional[Maxscale::Duration]                            $monitor_interval             = undef,
+  Optional[Maxscale::Duration]                            $backend_connect_timeout      = undef,
+  Optional[Maxscale::Duration]                            $backend_write_timeout        = undef,
+  Optional[Maxscale::Duration]                            $backend_read_timeout         = undef,
+  Optional[Variant[Boolean,Enum['safe']]]                 $auto_failover                = undef,
+  Optional[Boolean]                                       $auto_rejoin                  = undef,
+  Optional[Boolean]                                       $enforce_simple_topology      = undef,
+  Optional[String]                                        $replication_user             = undef,
+  Optional[Sensitive[String]]                             $replication_password         = undef,
+  Optional[Boolean]                                       $replication_master_ssl       = undef,
+  Optional[Enum['majority_of_all','majority_of_running']] $cooperative_monitoring_locks = undef,
+  Optional[Boolean]                                       $enforce_writable_master      = undef,
+  Optional[Boolean]                                       $enforce_read_only_slaves     = undef,
+  Optional[String]                                        $ssh_user                     = undef,
+  Optional[Stdlib::UnixPath]                              $ssh_keyfile                  = undef,
+| -%>
+[<%= $name -%>]
+type=monitor
+module=<%= $module %>
+user=<%= $user %>
+password=<%= $password %>
+servers=<%= $servers.join(',') %>
+<%- if $monitor_interval { -%>
+monitor_interval=<%= $monitor_interval %>
+<%- } -%>
+<%- if $backend_connect_timeout { -%>
+backend_connect_timeout=<%= $backend_connect_timeout %>
+<%- } -%>
+<%- if $backend_write_timeout { -%>
+backend_write_timeout=<%= $backend_write_timeout %>
+<%- } -%>
+<%- if $backend_read_timeout { -%>
+backend_read_timeout=<%= $backend_read_timeout %>
+<%- } -%>
+
+<%- if $auto_failover != undef { -%>
+auto_failover=<%= $auto_failover %>
+<%- } else {-%>
+##################################################################################################################
+# Uncomment these to enable automatic node failover:                                                             #
+# https://mariadb.com/kb/en/mariadb-maxscale-2501-maxscale-2501-mariadb-monitor/#cluster-manipulation-operations #
+#                                                                                                                #
+# The GRANTs required for automatic node failover can be found here:                                             #
+# https://mariadb.com/kb/en/mariadb-maxscale-2501-maxscale-2501-mariadb-monitor/#cluster-manipulation-grants     #
+##################################################################################################################
+# auto_failover=true
+<%- } -%>
+<%- if $auto_rejoin != undef { -%>
+auto_rejoin=<%= $auto_rejoin %>
+<%- } else {-%>
+# auto_rejoin=true
+<%- } -%>
+<%- if $enforce_simple_topology != undef { -%>
+enforce_simple_topology=<%= $enforce_simple_topology %>
+<%- } else {-%>
+# enforce_simple_topology=true
+<%- } -%>
+<%- if $replication_user { -%>
+replication_user=<%= $replication_user %>
+<%- } else {-%>
+# replication_user=<username used for replication>
+<%- } -%>
+<%- if $replication_password { -%>
+replication_password=<%= $replication_password %>
+<%- } else {-%>
+# replication_password=<password used for replication>
+<%- } -%>
+<%- if $replication_master_ssl != undef { -%>
+replication_master_ssl=<%= $replication_master_ssl %>
+<%- } -%>
+<%- if $cooperative_monitoring_locks { -%>
+cooperative_monitoring_locks=<%= $cooperative_monitoring_locks %>
+<%- } else {-%>
+#########################################################################################################
+# Uncomment this if you use more than one MaxScale with automatic node failover:                        #
+# https://mariadb.com/kb/en/mariadb-maxscale-2501-maxscale-2501-mariadb-monitor/#cooperative-monitoring #
+#########################################################################################################
+# cooperative_monitoring_locks=majority_of_all
+<%- } -%>
+<%- if $enforce_writable_master != undef { -%>
+enforce_writable_master=<%= $enforce_writable_master %>
+<%- } -%>
+<%- if $enforce_read_only_slaves != undef { -%>
+enforce_read_only_slaves=<%= $enforce_read_only_slaves %>
+<%- } -%>
+<%- if $ssh_user { -%>
+ssh_user=<%= $ssh_user %>
+<%- } -%>
+<%- if $ssh_keyfile { -%>
+ssh_keyfile=<%= $ssh_keyfile %>
+<%- } -%>
+
