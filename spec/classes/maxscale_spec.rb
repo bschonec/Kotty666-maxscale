@@ -158,7 +158,7 @@ describe 'maxscale' do
           {
             global_options: {
               'threads' => 4,
-              'admin_host' => '0.0.0.0',
+              'admin_host' => '30.0.0.0',
               'admin_port' => 8989,
             },
           }
